@@ -41,7 +41,7 @@ dns_enum() {
   if [[ $result == *"ns1"* ]]; then
   	result="${result//ns1.}"
   fi  
-  dig axfr $result @ip > ~/Documents/Notes/$hostname/$hostname.dig
+  dig axfr $result @$ip > ~/Documents/Notes/$hostname/$hostname.dig
 }
 
 
