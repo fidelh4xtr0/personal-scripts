@@ -2,7 +2,7 @@
 
 Basic script that enumerates ports, dns, and some basic webapp vulnerabilities.
 
-#Use
+### Use
 
 > ./initial-enum.sh -p `IP being scanned` -h `a name for the machine (can be anything)` -s `scan speed (faster scans are more likely to be caught)'
 
