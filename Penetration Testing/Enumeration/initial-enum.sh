@@ -57,15 +57,18 @@ while getopts 'i:h:s:' opt; do
     s)
       speed=$OPTARG
       ;;
-    #\? )
-     # echo "Invalid option: $OPTARG" 1>&2
-      #;;
+    ? )
+      echo "Invalid option: $OPTARG" 1>&2
+      ;;
     esac
 done
 shift "$((OPTIND -1))"  
+
     
 
-speed="-$speed"
+speed="-T$speed"
+
+echo $speed
 
 directory="~/Documents/Notes/$hostname"
 mkdir ~/Documents/Notes/$hostname
