@@ -45,11 +45,27 @@ dns_enum() {
 }
 
 
-ip=$1
-hostname=$2
-speed="-T4"
-web_server=false
-dns=false
+
+while getopts 'i:h:s:' opt; do
+  case "$opt" in
+    i)
+      ip=$OPTARG
+      ;;
+    h)
+      hostname=$OPTARG
+      ;;
+    s)
+      speed=$OPTARG
+      ;;
+    #\? )
+     # echo "Invalid option: $OPTARG" 1>&2
+      #;;
+    esac
+done
+shift "$((OPTIND -1))"  
+    
+
+speed="-$speed"
 
 directory="~/Documents/Notes/$hostname"
 mkdir ~/Documents/Notes/$hostname
