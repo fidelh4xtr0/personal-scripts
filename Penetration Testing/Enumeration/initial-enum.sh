@@ -18,7 +18,7 @@ nmap_enum() {
 
 analyze_nmap() {
    if [[ "$(cat ~/Documents/Notes/$hostname/$hostname.nmap)" == *"80/tcp"* ]]; then
-   	echo "Web server found. Analyzing..."
+   	echo "Web server found"
    	web_server=true
    else
    	echo "No web server found."
@@ -77,7 +77,7 @@ nmap_enum
 analyze_nmap
 
 if [[ "$web_server" == true ]]; then {
-  nikto_enum
+  nikto_enum || true
   }
 fi
 
