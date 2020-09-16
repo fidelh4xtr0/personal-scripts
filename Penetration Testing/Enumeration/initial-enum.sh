@@ -23,6 +23,11 @@ analyze_nmap() {
    else
    	echo "No web server found."
    fi
+
+   if [[ "$(cat ~/Documents/Notes/$hostname/$hostname.nmap)" == *"8080/tcp"* ]]; then
+   	echo "Secure Web server found"
+   	secure_web_server=true
+   fi
    
    if [[ "$(cat ~/Documents/Notes/$hostname/$hostname.nmap)" == *"53/tcp"* ]]; then
    	dns=true
@@ -32,6 +37,12 @@ analyze_nmap() {
 nikto_enum() {
   echo "Scanning vulnerabilities..."
   nikto -h $ip > ~/Documents/Notes/$hostname/$hostname.nikto
+  if [[ "$secure_web_server" == true ]]; then
+    echo "" >> ~/Documents/Notes/$hostname/$hostname.nikto
+    echo "" >> ~/Documents/Notes/$hostname/$hostname.nikto
+    echo "" >> ~/Documents/Notes/$hostname/$hostname.nikto
+    nikto -h $ip:8080 >> ~/Documents/Notes/$hostname/$hostname.nikto
+  fi
 }
 
 dns_enum() {
@@ -68,7 +79,6 @@ shift "$((OPTIND -1))"
 
 speed="-T$speed"
 
-echo $speed
 
 directory="~/Documents/Notes/$hostname"
 mkdir ~/Documents/Notes/$hostname
