@@ -5,33 +5,56 @@
 #of a target machine.                       #
 #############################################
 
-nmap_enum() {
-  nmap $speed -sV -p- $ip > ~/Documents/Notes/$hostname/$hostname.nmap
-  
-  fail_string="Note: Host seems down."
-  
-  if [[ "$(cat ~/Documents/Notes/$hostname/$hostname.nmap)" == *"$fail_string"* ]]; then 
-  	nmap -T4 -Pn -p- $ip > ~/Documents/Notes/$hostname/$hostname.nmap
-  fi
-        
-}
+nmap_enum() {                                                                                                                                                
+  nmap $speed -sV -p- -sC -A $ip -v -oA ~/Documents/Notes/$hostname/$hostname                                                                                
+                                                                                                                                                             
+  fail_string="Note: Host seems down."                                                                                                                       
+                                                                                                                                                             
+  if [[ "$(cat ~/Documents/Notes/$hostname/$hostname.nmap)" == *"$fail_string"* ]]; then                                                                     
+        nmap $speed -Pn -p- -sC -sV -A $ip -v -oA ~/Documents/Notes/$hostname/$hostname                                                                      
+  fi                                                                                                                                                         
+                                                                                                                                                             
+}    
+
 
 analyze_nmap() {
-   if [[ "$(cat ~/Documents/Notes/$hostname/$hostname.nmap)" == *"80/tcp"* ]]; then
-   	echo "Web server found"
-   	web_server=true
-   else
-   	echo "No web server found."
-   fi
+  portlist=()
+  while read line; do
+    if [[ "$(echo $line)" == *tcp* ]]; then
+      if [[ "$(echo $line)" == *http* ]]; then
+        portlist+=("${line:0:7}  ${line:14:9}")
+        fi
+      fi
+    done < ~/Documents/Notes/$hostname/$hostname.nmap
+  
+  for port in "${portlist[@]}"
+  do
+    p="$(echo $port | sed 's/[^0-9]*//g')"
+    if [[ "$(echo $port)" == *"http"* ]]; then
+      echo "Web Server found on port $p"
+      web_server=true
+      fi
+    if [[ "$(echo $port)" == *"https"* ]]; then
+      echo "Secure Web Server Found on port $p"
+      secure_web_server=true
+      fi
+  done
 
-   if [[ "$(cat ~/Documents/Notes/$hostname/$hostname.nmap)" == *"8080/tcp"* ]]; then
-   	echo "Secure Web server found"
-   	secure_web_server=true
-   fi
-   
-   if [[ "$(cat ~/Documents/Notes/$hostname/$hostname.nmap)" == *"53/tcp"* ]]; then
-   	dns=true
-   fi
+}
+
+dirbust(){
+  wordlist="/usr/share/wordlists/dirb/big.txt"
+  for port in "${portlist[@]}"
+  do 
+    p="$(echo $port | sed 's/[^0-9]*//g')"
+    echo "Busting directories in port $p"
+    echo "###################$p###################" >> ~/Documents/Notes/$hostname/$hostname.dbust
+	    if [[ $p  = *"https"* ]]; then
+      gobuster dir -u https://$ip:$p -w $wordlist -x php,txt,log,sh,aspx,html -k -r >> ~/Documents/Notes/$hostname/$hostname.dbust
+    else 
+      gobuster dir -u http://$ip:$p -w $wordlist -x php,txt,log,sh,aspx,html -k -r >> ~/Documents/Notes/$hostname/$hostname.dbust
+    fi
+  done
 }
 
 nikto_enum() {
@@ -80,21 +103,27 @@ shift "$((OPTIND -1))"
 speed="-T$speed"
 
 
-directory="~/Documents/Notes/$hostname"
 mkdir ~/Documents/Notes/$hostname
 
 nmap_enum
 analyze_nmap
 
-if [[ "$web_server" == true ]]; then {
+if [[ "$web_server" == true || "$secure_web_server" == true ]]; then {
+  dirbust || true
+  }
+fi
+
+if [[ "$web_server" == true || "$secure_web_server" == true ]]; then {
   nikto_enum || true
   }
 fi
 
-if [[ "$dns" == true ]]; then {
-  dns_enum
-}
-fi
+
+
+#if [[ "$dns" == true ]]; then {
+#  dns_enum
+#}
+#fi
 
 echo "Scan complete"
 
